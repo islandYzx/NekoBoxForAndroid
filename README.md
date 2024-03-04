@@ -78,3 +78,5 @@ Android GUI:
 
 Web Dashboard:
 - [Yacd-meta](https://github.com/MetaCubeX/Yacd-meta)
+
+## Build

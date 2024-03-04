@@ -7,36 +7,9 @@ on:
       - '*'
   pull_request:
 jobs:
-  libcore:
-    name: Native Build (LibCore)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Golang Status
-        run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
-      - name: Libcore Status
-        run: git ls-files libcore | xargs cat | sha1sum > libcore_status
-      - name: LibCore Cache
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            app/libs/libcore.aar
-          key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}-ci
-      - name: Install Golang
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v5
-        with:
-          go-version: ^1.21
-      - name: Native Build
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: ./run lib core
   build:
     name: Build OSS APK
     runs-on: ubuntu-latest
-    needs:
-      - libcore
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,12 +22,12 @@ jobs:
         with:
           path: |
             app/libs/libcore.aar
-          key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}-ci
+          key: e50dc0da316ea86e5c8954193f098c584c84b4ca9e57840b59648274238be989-ci
       - name: Gradle cache
         uses: actions/cache@v4
         with:
           path: ~/.gradle
-          key: gradle-oss-${{ hashFiles('**/*.gradle.kts') }}-ci
+          key: gradle-oss-ed2862510d8efeb03ecdca8731ad6f8bcf53d7971354251c18549002c784d28a-ci
       - name: Gradle Build
         env:
           BUILD_PLUGIN: none
@@ -63,8 +36,7 @@ jobs:
           echo "ndk.dir=${ANDROID_HOME}/ndk/25.0.8775105" >> local.properties
           export LOCAL_PROPERTIES="${{ secrets.LOCAL_PROPERTIES }}"
           ./run init action gradle
-          ./gradlew app:assembleOssDebug
-          APK=$(find app/build/outputs/apk -name '*arm64-v8a*.apk')
+          APK=$(find app/libs -name '*.aar')
           APK=$(dirname $APK)
           echo "APK=$APK" >> $GITHUB_ENV
       - name: Upload Artifacts
